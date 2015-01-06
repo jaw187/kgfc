@@ -1,0 +1,25 @@
+{
+  "name": "kgfc",
+  "version": "0.0.0",
+  "description": "Ken Griffey Fan Club Homepage",
+  "engines": {
+    "node": "0.10.x"
+  },
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "James Weston",
+  "license": "ISC",
+  "dependencies": {
+    "boom": "^2.6.1",
+    "handlebars": "^2.0.0",
+    "hapi": "8.x.x",
+    "hoek": "^2.10.0",
+    "insync": "^1.0.0",
+    "joi": "5.x.x",
+    "leveldown": "0.10.x",
+    "levelup": "0.19.x",
+    "wreck": "^5.1.0"
+  }
+}

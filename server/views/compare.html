@@ -1,0 +1,164 @@
+<div class="row">
+    <div class="col-md-6" id="keeperContainer"></div>
+    <div class="col-md-6" id="rosterContainer"></div>
+</div>
+
+<script type="text/jsx">
+
+var loadData = function (self) {
+
+    $.ajax({
+        url: self.props.url,
+        dataType: 'json',
+        success: function(data) {
+
+            self.setState({ data: data });
+        }.bind(self),
+        error: function(xhr, status, err) {
+
+            console.error(self.props.url, status, err.toString());
+        }.bind(self)
+    });
+}
+
+var RosterList = React.createClass({
+    getInitialState: function() {
+
+        return { data: []};
+    },
+    componentDidMount: function() {
+
+        loadData(this);
+    },
+    render: function () {
+
+        return (
+            <div className="rosterList">
+                <h1>Rosters</h1>
+                <Rosters data={this.state.data} />
+            </div>
+        );
+    }
+});
+
+var Rosters = React.createClass({
+    render: function() {
+
+        var players = this.props.data.map(function (player) {
+
+            return (
+                <Player name={player.name} />
+            );
+        });
+
+        return (
+            <div className="rosters">
+                {players}
+            </div>
+        );
+    }
+});
+
+var Player = React.createClass({
+    render: function () {
+
+        return (
+            <div className="player">{this.props.name}</div>
+        );
+    }
+});
+
+var KeeperList = React.createClass({
+    getInitialState: function() {
+
+        return { data: []};
+    },
+    componentDidMount: function() {
+
+        loadData(this);
+    },
+    render: function() {
+
+        return (
+            <div className="keeperList">
+                <h1>Keepers</h1>
+                <Keepers data={this.state.data} />
+            </div>
+        );
+    }
+});
+
+var Keepers = React.createClass({
+    handleSubmit: function (event) {
+
+        event.preventDefault();
+    },
+    render: function() {
+        var keepers = this.props.data.map(function (keeper) {
+
+            return (
+                <Keeper name={keeper.name} round={keeper.round} />
+            );
+        });
+
+        return (
+            <div className="keepers">
+                <form className="keeperForm" onSubmit={this.handleSubmit}>
+                    {keepers}
+                    <input type="submit" />
+                </form>
+            </div>
+        );
+    }
+});
+
+var Keeper = React.createClass({
+    getInitialState: function() {
+        return { name: this.props.name };
+    },
+    handleChange: function (event) {
+
+        var payload = {
+            previous: this.state.name,
+            update: event.target.value
+        };
+
+        $.ajax({
+            type: 'POST',
+            url: '/update',
+            data: payload,
+            dataType: 'json',
+            success: function () {
+
+                console.log(':: UPDATE ::')
+            },
+            error: function (xhr, status, err) {
+
+                console.error(':: ERR ::', status, err.toString());
+            }
+        });
+
+        this.setState({ name: event.target.value });
+    },
+    render: function() {
+
+        return (
+            <div className="keeper">
+                <input type="text" value={this.state.name} onChange={this.handleChange} />
+                -
+                {this.props.round}
+            </div>
+        );
+    }
+});
+
+React.render(
+    <KeeperList url='/keepers' />,
+    document.getElementById('keeperContainer')
+);
+
+React.render(
+    <RosterList url='/finalrosters' />,
+    document.getElementById('rosterContainer')
+);
+</script>

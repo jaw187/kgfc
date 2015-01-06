@@ -1,0 +1,203 @@
+<div class="row">
+    <div class="col-md-3" id="playerContainer"></div>
+    <div class="col-md-6" id="playerDetailContainer"></div>
+</div>
+
+<script type="text/jsx">
+
+var internals = {};
+
+var loadData = function (self) {
+
+    $.ajax({
+        url: self.props.url,
+        dataType: 'json',
+        success: function(data) {
+
+            internals.data = data;
+            filterPlayers(function () {
+                self.setState({ })
+            }
+            self.setState({ data: data });
+        }.bind(self),
+        error: function(xhr, status, err) {
+
+            console.error(self.props.url, status, err.toString());
+        }.bind(self)
+    });
+};
+
+var showPlayers = function (status, position) {
+
+    return internals.players[status][position];
+}
+
+var combineLists = function (a, b) {
+
+    var list = [];
+    for (var i = 0, il = a.length; i < il; ++i) {
+        var found = false;
+        for (var j = 0, jl = b.length; j < jl; ++j) {
+            if (a.id === b.id) {
+                found = true;
+            }
+        }
+    }
+}
+
+internals.registerPlayerDetail = function (container) {
+
+    internals.playerDetail = container;
+}
+
+var PlayerDetailContainer = React.createClass({
+    getInitialState: function () {
+        return {
+            player: {
+                name: '',
+                team: '',
+                positions: '',
+            }
+        };
+    },
+    componentDidMount: function () {
+
+        internals.registerPlayerDetail(this);
+    },
+    render: function () {
+
+        return (
+            <div className="playerDetail">
+                <PlayerDetail name={this.state.player.name} team={this.state.player.team} positions={this.state.player.positions} />
+            </div>
+        )
+    }
+});
+
+var PlayerDetail = React.createClass({
+    render: function () {
+
+        return (
+            <h2>{this.props.name}</h2>
+        )
+    }
+});
+
+var filterPlayers = function (which) {
+
+    var players = internals.data;
+    var filteredPlayers = [];
+
+    var isPitcher = function (player) {
+
+        var positions = player.positions;
+
+        if (!positions) {
+            return false;
+        }
+
+        for (var j = 0, jl = positions.length; j < jl; j++) {
+            var position = positions[j];
+            if (position === 'SP' || position === 'RP') {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    for (var i = 0, il = players.length; i < il; ++i) {
+        var player = players[i];
+        if (which === 'pitchers') {
+            if (isPitcher(player)) {
+                filteredPlayers.push(player);
+            }
+            continue;
+        }
+
+        if (!isPitcher(player)) {
+            filteredPlayers.push(player);
+        }
+    }
+
+    return filteredPlayers;
+}
+
+var PlayerList = React.createClass({
+    getInitialState: function() {
+
+        return { data: []};
+    },
+    componentDidMount: function() {
+
+        loadData(this);
+    },
+    showHitters: function () {
+
+        var hitters = filterPlayers('hitters');
+        this.setState({ data: hitters });
+    },
+    showPitchers: function () {
+
+        var pitchers = filterPlayers('pitchers');
+        this.setState({ data: pitchers });
+    },
+    render: function () {
+
+        return (
+            <div className="playerList">
+                <h1>Players</h1>
+                <button onClick={this.showHitters}>Hitters</button>
+                <button onClick={this.showPitchers}>Pitchers</button>
+                <Players data={this.state.data} />
+            </div>
+        );
+    }
+});
+
+var Players = React.createClass({
+    render: function () {
+
+        var players = this.props.data.map(function (player) {
+
+            return (
+                <Player name={player.name} id={player.id} team={player.team} positions={player.positions} photo={player.photo} status={player.status} />
+            );
+        });
+
+        return (
+            <div className="players">
+            {players}
+            </div>
+        );
+    }
+});
+
+var Player = React.createClass({
+    onClick: function (event) {
+
+        internals.playerDetail.setState({ player: this.props });
+        console.log(':: CLICK ::', this.props.id)
+        console.log(':: DETAIL ::', internals.playerDetail)
+    },
+    render: function () {
+
+        return (
+            <div className="player" onClick={this.onClick}>
+                {this.props.name}
+            </div>
+        )
+    }
+});
+
+React.render(
+    <PlayerList url='/players' />,
+    document.getElementById('playerContainer')
+);
+
+React.render(
+    <PlayerDetailContainer />,
+    document.getElementById('playerDetailContainer')
+);
+
+</script>

@@ -1,0 +1,24 @@
+<script src="/js/sortable.min.js"></script>
+
+<div class="row">
+    <div class="col-md-6" id="rosters">
+        <table id="rosters" class="table table-hover table-condensed sortable-theme-bootstrap" data-sortable>
+            <thead>
+                <tr>
+                    <th data-sort="string">Team</th>
+                    <th data-sort="string">Player</th>
+                    <th data-sort="int">Round</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each players}}
+                <tr>
+                    <td>{{team}}</td>
+                    <td>{{name}}</td>
+                    <td>{{round}}</td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+</div>
