@@ -1,0 +1,15 @@
+table#rosters {
+    font-size: 16px;
+    line-height: 18px;
+    width: auto;
+    min-width: 0;
+    display: table;
+}
+
+table#rosters td {
+    padding: 4px;
+}
+
+select {
+    font-size: 24px;
+}

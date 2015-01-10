@@ -50,8 +50,27 @@ module.exports = internals.routes = [
                     return 1;
                 });
 
-                return reply.view('rosters', { players: rosters });
+                var teams = {};
+                for (var i = 0, il = rosters.length; i < il; ++i) {
+                    var player = rosters[i]
+                    var team = teams[player.team];
+                    if (!team) {
+                        team = teams[player.team] = [];
+                    }
+
+                    team.push(player);
+                }
+
+                return reply(teams);
             });
+        }
+    },
+    {
+        method: 'GET',
+        path: '/viewrosters',
+        handler: function (request, reply) {
+
+            return reply.view('rosters');
         }
     },
     {

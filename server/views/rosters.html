@@ -1,24 +1,179 @@
-<script src="/js/sortable.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/css/rosters.css" />
 
-<div class="row">
-    <div class="col-md-6" id="rosters">
-        <table id="rosters" class="table table-hover table-condensed sortable-theme-bootstrap" data-sortable>
-            <thead>
-                <tr>
-                    <th data-sort="string">Team</th>
-                    <th data-sort="string">Player</th>
-                    <th data-sort="int">Round</th>
-                </tr>
-            </thead>
-            <tbody>
-                {{#each players}}
-                <tr>
-                    <td>{{team}}</td>
-                    <td>{{name}}</td>
-                    <td>{{round}}</td>
-                </tr>
-                {{/each}}
-            </tbody>
-        </table>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12" id="dropdownContainer"></div>
+        <div class="col-md-12" id="rostersContainer"></div>
     </div>
 </div>
+
+<script type="text/jsx">
+
+var internals = {};
+
+internals.setTeamSelectionBox = function () {
+
+    var teams = [];
+    var rosters = internals.rosters;
+    for (var i in rosters) {
+        if (rosters.hasOwnProperty(i)) {
+            teams.push(i);
+        }
+    }
+
+    internals.teamSelect.setState({ teams: teams });
+};
+
+var loadData = function (self) {
+
+    $.ajax({
+        url: self.props.url,
+        dataType: 'json',
+        success: function(data) {
+
+            internals.rosters = data;
+            self.showAll();
+            internals.setTeamSelectionBox();
+        }.bind(self),
+        error: function(xhr, status, err) {
+
+            console.error(self.props.url, status, err.toString());
+        }.bind(self)
+    });
+};
+
+var Rosters = React.createClass({
+    getInitialState: function () {
+
+        return { roster: [] };
+    },
+    componentDidMount: function () {
+
+        internals.rosterTable = this;
+        loadData(this);
+    },
+    showTeam: function (team) {
+
+        var rosters = internals.rosters;
+        this.setState( { roster: rosters[team] } )
+    },
+    showAll: function () {
+
+        var rosters = internals.rosters;
+        var roster = [];
+        for (var t in rosters) {
+            if (rosters.hasOwnProperty(t)) {
+                var team = rosters[t];
+                for (var i = 0, il = team.length; i < il; ++i) {
+                    roster.push(team[i]);
+                }
+            }
+        }
+
+        this.setState( { roster: roster });
+    },
+    render: function () {
+
+        return (
+            <Players data={this.state.roster} />
+        );
+    }
+});
+
+var Dropdown = React.createClass({
+    getInitialState: function () {
+
+        return { teams: [] };
+    },
+    componentDidMount: function () {
+
+        internals.teamSelect = this;
+    },
+    showTeam: function (event) {
+
+        var team = event.target.value;
+
+        if (team === 'ALL') {
+            return internals.rosterTable.showAll();
+        }
+
+        internals.rosterTable.showTeam(team);
+    },
+    render: function () {
+
+        var teams = this.state.teams.map(function (team) {
+
+            return (
+                <Team name={team} />
+            );
+        });
+
+        return (
+            <select onChange={this.showTeam}>
+                <option value="ALL"></option>
+                <option value="ALL">Show all teams</option>
+                {teams}
+            </select>
+        );
+    }
+});
+
+var Team = React.createClass({
+    render: function () {
+
+        return (
+            <option value={this.props.name}>{this.props.name}</option>
+        )
+    }
+})
+
+var Players = React.createClass({
+    render: function () {
+
+        var players = this.props.data.map(function (player) {
+
+            return (
+                <Player name={player.name} team={player.team} round={player.round} />
+            );
+        });
+
+        return (
+            <table id="rosters" className="table table-striped">
+                <thead>
+                    <tr>
+                        <th data-sort="string">Team</th>
+                        <th data-sort="string">Player</th>
+                        <th data-sort="int">Round</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {players}
+                </tbody>
+            </table>
+        );
+    }
+});
+
+var Player = React.createClass({
+    render: function () {
+        return (
+            <tr>
+                <td>{this.props.team}</td>
+                <td>{this.props.name}</td>
+                <td>{this.props.round}</td>
+            </tr>
+        )
+    }
+});
+
+React.render(
+    <Rosters url='/rosters' />,
+    document.getElementById('rostersContainer')
+);
+
+React.render(
+    <Dropdown />,
+    document.getElementById('dropdownContainer')
+);
+
+</script>
